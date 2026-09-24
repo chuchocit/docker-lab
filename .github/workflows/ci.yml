@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD
 
 on:
   push:
@@ -10,8 +10,13 @@ on:
     branches:
       - master
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   test:
+    name: Run Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -67,3 +72,41 @@ jobs:
       - name: Stop Docker containers
         if: always()
         run: docker compose down
+
+  build-and-push:
+    name: Build and Push Docker Images
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build PHP image
+        run: |
+          docker build \
+            -f php/Dockerfile.prod \
+            -t ghcr.io/chuchocit/docker-lab:latest \
+            .
+
+      - name: Push PHP image
+        run: |
+          docker push ghcr.io/chuchocit/docker-lab:latest
+
+      - name: Build Nginx image
+        run: |
+          docker build \
+            -f nginx/Dockerfile.prod \
+            -t ghcr.io/chuchocit/docker-lab-nginx:latest \
+            .
+
+      - name: Push Nginx image
+        run: |
+          docker push ghcr.io/chuchocit/docker-lab-nginx:latest

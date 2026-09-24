@@ -1,4 +1,4 @@
-
+name: docker-lab-dev
 services:
 
   nginx:
