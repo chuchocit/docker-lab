@@ -18,10 +18,21 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v4
 
-      - name: Show project information
-        run: |
-          echo "CI is running"
-          echo "Current directory:"
-          pwd
-          echo "Project files:"
-          ls -la
+      - name: Build Docker containers
+        run: docker compose build
+
+      - name: Start Docker containers
+        run: docker compose up -d
+
+      - name: Check Docker containers
+        run: docker compose ps
+
+      - name: Check PHP version
+        run: docker compose exec -T php php -v
+
+      - name: Run Laravel tests
+        run: docker compose exec -T php php artisan test
+
+      - name: Stop Docker containers
+        if: always()
+        run: docker compose down
