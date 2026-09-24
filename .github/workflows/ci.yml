@@ -21,6 +21,9 @@ jobs:
       - name: Build Docker containers
         run: docker compose build
 
+      - name: Install Composer dependencies
+        run: docker compose run --rm php composer install --no-interaction --prefer-dist
+
       - name: Start Docker containers
         run: docker compose up -d
 
