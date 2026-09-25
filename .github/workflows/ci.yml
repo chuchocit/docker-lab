@@ -110,3 +110,28 @@ jobs:
       - name: Push Nginx image
         run: |
           docker push ghcr.io/chuchocit/docker-lab-nginx:latest
+
+  deploy-qc:
+    name: Deploy to Local QC
+    runs-on: self-hosted
+    needs: build-and-push
+
+    steps:
+      - name: Deploy Docker images to QC
+        run: |
+          cd /home/chucnguyen/projects/docker-lab-qc
+
+          echo "==> Pull latest Docker images"
+          docker compose pull
+
+          echo "==> Restart QC containers"
+          docker compose up -d
+
+          echo "==> Run Laravel migrations"
+          docker compose exec -T php php artisan migrate --force
+
+          echo "==> Check QC status"
+          docker compose ps
+
+          echo "==> Check QC application"
+          curl -I http://localhost:8090
